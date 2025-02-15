@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import datetime
+import time
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -70,7 +71,6 @@ def fetch_splits(ticker):
 def fetch_table(url):
     df = pd.read_html(url)
     return df[0]
-
 
 def format_value(value):
     # Split the string at the first space

@@ -1,5 +1,7 @@
 from functions import *
 from contact import contact_form
+from streamlit_javascript import st_javascript
+from zoneinfo import ZoneInfo
 
 @st.dialog("Contact Me")
 def show_contact_form():
@@ -15,10 +17,21 @@ st.set_page_config(
     }
 )
 
+# ----TIME ZONE----
+if 'timezone' not in st.session_state:
+    timezone = st_javascript("""await (async () => {
+                    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    return userTimezone
+                    })().then(returnValue => returnValue)""")
+    if isinstance(timezone, int):
+        st.stop()
+    st.session_state['timezone'] = ZoneInfo(timezone)
+
+
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
     'tickers': "MSFT",
-    'current_time_price_page': datetime.datetime.now().replace(microsecond=0)
+    'current_time_price_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -122,7 +135,7 @@ with st.sidebar:
     button = st.button("Refresh data", key="refresh_security")
 
     if button:
-        st.session_state['current_time_price_page'] = datetime.datetime.now().replace(microsecond=0)
+        st.session_state['current_time_price_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
         fetch_table.clear()
         fetch_info.clear()
         fetch_history.clear()
@@ -371,7 +384,7 @@ if len(TICKERS) == 1:
             hide_index=False
         )
 
-if len(TICKERS) > 1:
+else:
 
     TITLE = ", ".join(TICKERS)
 

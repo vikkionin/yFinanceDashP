@@ -18,7 +18,7 @@ st.set_page_config(
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
     'tickers': "MSFT",
-    'current_time_financials_page': datetime.datetime.now().replace(microsecond=0)
+    'current_time_financials_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -67,7 +67,7 @@ with st.sidebar:
     button = st.button("Refresh data", key="refresh_security")
 
     if button:
-        st.session_state['current_time_financials_page'] = datetime.datetime.now().replace(microsecond=0)
+        st.session_state['current_time_financials_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
         fetch_info.clear()
         fetch_balance.clear()
         fetch_income.clear()
@@ -147,12 +147,13 @@ if len(TICKERS) == 1:
             fig = plot_equity(bs, ticker=TICKER, currency=CURRENCY)
             st.plotly_chart(fig, use_container_width=True)
 
+
+
     with st.expander("Show data"):
         st.dataframe(
-            data=bs.reset_index(),
-            hide_index=True
+            data=bs,
+            hide_index=False
         )
-
 
     #----INCOME STATEMENT----
 
@@ -168,8 +169,8 @@ if len(TICKERS) == 1:
 
     with st.expander("Show data"):
         st.dataframe(
-            data=ist.reset_index(),
-            hide_index=True
+            data=ist,
+            hide_index=False
         )
 
     #----CASH FLOW----
@@ -185,11 +186,11 @@ if len(TICKERS) == 1:
 
     with st.expander("Show data"):
         st.dataframe(
-            data=cf.reset_index(),
-            hide_index=True
+            data=cf,
+            hide_index=False
         )
 
-if len(TICKERS) > 1:
+else:
     # ----CAPITAL STRUCTURE-----
 
     st.header("Capital Structure")

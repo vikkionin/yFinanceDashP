@@ -17,7 +17,7 @@ st.set_page_config(
 
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
-    'current_time_forex_page': datetime.datetime.now().replace(microsecond=0)
+    'current_time_forex_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -133,7 +133,7 @@ with st.sidebar:
     button = st.button("Refresh data", key="refresh_security")
 
     if button:
-        st.session_state['current_time_forex_page'] = datetime.datetime.now().replace(microsecond=0)
+        st.session_state['current_time_forex_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
         fetch_table.clear()
         fetch_info.clear()
         fetch_history.clear()
@@ -298,7 +298,7 @@ if len(CURRENCY_1) == 1:
     st.plotly_chart(fig, use_container_width=True)
 
 
-if len(CURRENCY_1) > 1:
+else:
 
     TITLE = f'{CURRENCY_1}/{CURRENCY_2}'
 
