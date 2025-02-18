@@ -69,8 +69,11 @@ def fetch_splits(ticker):
 
 @st.cache_data
 def fetch_table(url):
-    df = pd.read_html(url)
-    return df[0]
+    try:
+        df = pd.read_html(url)
+        return df[0]
+    except:
+        return None
 
 def format_value(value):
     # Split the string at the first space

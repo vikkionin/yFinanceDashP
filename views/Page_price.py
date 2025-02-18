@@ -160,7 +160,6 @@ st.title("Stock Market")
 col1, col2, col3 = st.columns(3, gap="small")
 
 with col1:
-    st.subheader("Indices")
 
     URL = "https://finance.yahoo.com/markets/world-indices/"
 
@@ -168,70 +167,74 @@ with col1:
 
     INDICES = ["^GSPC", "^DJI", "^IXIC", "^N225", "^GDAXI", "^MERV"]
 
-    with st.container(border=True):
-        i = 0
-        for _ in range(3):
-            cols = st.columns(2, gap="small")
-            for col in cols:
-                with col:
-                    row = df[df['Symbol'] == INDICES[i]].iloc[0]
-                    name = row['Name']
-                    symbol = row['Symbol']
-                    price, change, change_pt = row['Price'].split()
-                    st.metric(
-                        label=f'{name} ({symbol})',
-                        value=f'{price}',
-                        delta=f'{change} {change_pt}'
-                    )
-                i += 1
+    if df:
+        st.subheader("Indices")
+        with st.container(border=True):
+            i = 0
+            for _ in range(3):
+                cols = st.columns(2, gap="small")
+                for col in cols:
+                    with col:
+                        row = df[df['Symbol'] == INDICES[i]].iloc[0]
+                        name = row['Name']
+                        symbol = row['Symbol']
+                        price, change, change_pt = row['Price'].split()
+                        st.metric(
+                            label=f'{name} ({symbol})',
+                            value=f'{price}',
+                            delta=f'{change} {change_pt}'
+                        )
+                    i += 1
 
 with col2:
-    st.subheader("Top Gainers")
 
     URL = "https://finance.yahoo.com/markets/stocks/gainers/"
 
     df = fetch_table(URL)
 
-    with st.container(border=True):
-        i = 0
-        for _ in range(3):
-            cols = st.columns(2, gap="small")
-            for col in cols:
-                with col:
-                    row = df.iloc[i]
-                    name = row['Name']
-                    symbol = row['Symbol']
-                    price, change, change_pt = row['Price'].split()
-                    st.metric(
-                        label=f'{name} ({symbol})',
-                        value=f'{price}',
-                        delta=f'{change} {change_pt}'
-                    )
-                i += 1
+    if df:
+        st.subheader("Top Gainers")
+        with st.container(border=True):
+            i = 0
+            for _ in range(3):
+                cols = st.columns(2, gap="small")
+                for col in cols:
+                    with col:
+                        row = df.iloc[i]
+                        name = row['Name']
+                        symbol = row['Symbol']
+                        price, change, change_pt = row['Price'].split()
+                        st.metric(
+                            label=f'{name} ({symbol})',
+                            value=f'{price}',
+                            delta=f'{change} {change_pt}'
+                        )
+                    i += 1
 
 with col3:
-    st.subheader("Top Losers")
 
     URL = "https://finance.yahoo.com/markets/stocks/losers/"
 
     df = fetch_table(URL)
 
-    with st.container(border=True):
-        i = 0
-        for _ in range(3):
-            cols = st.columns(2, gap="small")
-            for col in cols:
-                with col:
-                    row = df.iloc[i]
-                    name = row['Name']
-                    symbol = row['Symbol']
-                    price, change, change_pt = row['Price'].split()
-                    st.metric(
-                        label=f'{name} ({symbol})',
-                        value=f'{price}',
-                        delta=f'{change} {change_pt}'
-                    )
-                i += 1
+    if df:
+        st.subheader("Top Losers")
+        with st.container(border=True):
+            i = 0
+            for _ in range(3):
+                cols = st.columns(2, gap="small")
+                for col in cols:
+                    with col:
+                        row = df.iloc[i]
+                        name = row['Name']
+                        symbol = row['Symbol']
+                        price, change, change_pt = row['Price'].split()
+                        st.metric(
+                            label=f'{name} ({symbol})',
+                            value=f'{price}',
+                            delta=f'{change} {change_pt}'
+                        )
+                    i += 1
 
 
 #----SECOND SECTION----

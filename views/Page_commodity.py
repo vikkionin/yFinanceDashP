@@ -121,31 +121,30 @@ st.title("Commodity Market")
 
 #----FIRST SECTION----
 
-
-st.subheader("Top Commodities")
-
 URL = "https://finance.yahoo.com/markets/commodities/"
 
 df = fetch_table(URL)
 
 COMMODITIES = ["GC=F", "SI=F", "HG=F", "NG=F", "BZ=F", "KC=F", "KE=F", "ZS=F"]
 
-with st.container(border=True):
-    i = 0
-    for _ in range(2):
-        cols = st.columns(4, gap="small")
-        for col in cols:
-            with col:
-                row = df[df['Symbol'] == COMMODITIES[i]].iloc[0]
-                name = row['Name']
-                symbol = row['Symbol']
-                price, change, change_pt = row['Price'].split()
-                st.metric(
-                    label=f'{name}',
-                    value=f'{price}',
-                    delta=f'{change} {change_pt}'
-                )
-            i += 1
+if df:
+    st.subheader("Top Commodities")
+    with st.container(border=True):
+        i = 0
+        for _ in range(2):
+            cols = st.columns(4, gap="small")
+            for col in cols:
+                with col:
+                    row = df[df['Symbol'] == COMMODITIES[i]].iloc[0]
+                    name = row['Name']
+                    symbol = row['Symbol']
+                    price, change, change_pt = row['Price'].split()
+                    st.metric(
+                        label=f'{name}',
+                        value=f'{price}',
+                        delta=f'{change} {change_pt}'
+                    )
+                i += 1
 
 #----SECOND SECTION----
 

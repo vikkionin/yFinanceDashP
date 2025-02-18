@@ -158,55 +158,57 @@ st.title("Forex Market")
 col1, col2 = st.columns(2, gap="small")
 
 with col1:
-    st.subheader("Top Currencies")
 
     URL = "https://finance.yahoo.com/markets/currencies/"
 
-    df = fetch_table(URL)
-
     CURRENCIES = ["EURUSD=X", "JPY=X", "GBPUSD=X", "AUDUSD=X", "CNY=X", "MXN=X", "INR=X", "SGD=X", "ZAR=X"]
 
-    with st.container(border=True):
-        i = 0
-        for _ in range(2):
-            cols = st.columns(3, gap="small")
-            for col in cols:
-                with col:
-                    #row = df.iloc[i]
-                    row = df[df['Symbol'] == CURRENCIES[i]].iloc[0]
-                    name = row['Name']
-                    symbol = row['Symbol']
-                    price, change, change_pt = row['Price'].split()
-                    st.metric(
-                        label=f'{name}',
-                        value=f'{price}',
-                        delta=f'{change} {change_pt}'
-                    )
-                i += 1
+    df = fetch_table(URL)
+
+    if df:
+        st.subheader("Top Currencies")
+        with st.container(border=True):
+            i = 0
+            for _ in range(2):
+                cols = st.columns(3, gap="small")
+                for col in cols:
+                    with col:
+                        #row = df.iloc[i]
+                        row = df[df['Symbol'] == CURRENCIES[i]].iloc[0]
+                        name = row['Name']
+                        symbol = row['Symbol']
+                        price, change, change_pt = row['Price'].split()
+                        st.metric(
+                            label=f'{name}',
+                            value=f'{price}',
+                            delta=f'{change} {change_pt}'
+                        )
+                    i += 1
 
 with col2:
-    st.subheader("Top Cryptos")
 
     URL = "https://finance.yahoo.com/markets/crypto/all/"
 
     df = fetch_table(URL)
 
-    with st.container(border=True):
-        i = 0
-        for _ in range(2):
-            cols = st.columns(3, gap="small")
-            for col in cols:
-                with col:
-                    row = df.iloc[i]
-                    name = row['Name']
-                    symbol = row['Symbol']
-                    price, change, change_pt = row['Price'].split()
-                    st.metric(
-                        label=f'{name}',
-                        value=f'{price}',
-                        delta=f'{change} {change_pt}'
-                    )
-                i += 1
+    if df:
+        st.subheader("Top Cryptos")
+        with st.container(border=True):
+            i = 0
+            for _ in range(2):
+                cols = st.columns(3, gap="small")
+                for col in cols:
+                    with col:
+                        row = df.iloc[i]
+                        name = row['Name']
+                        symbol = row['Symbol']
+                        price, change, change_pt = row['Price'].split()
+                        st.metric(
+                            label=f'{name}',
+                            value=f'{price}',
+                            delta=f'{change} {change_pt}'
+                        )
+                    i += 1
 
 #----SECOND SECTION----
 

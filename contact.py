@@ -13,6 +13,7 @@ def is_valid_email(email):
 def contact_form():
 
     PASSWORD = st.secrets["PASSWORD"]
+    USERNAME = st.secrets["USERNAME"]
 
     with st.form("contact_form", clear_on_submit=False):
 
@@ -52,7 +53,7 @@ def contact_form():
             # Email configuration
             smtp_server = 'smtp.gmail.com'  # Replace with your SMTP server
             smtp_port = 587  # For TLS
-            username = 'leonardoantiqui@gmail.com'  # Your email address
+            username = USERNAME  # Your email address
             password = PASSWORD # Your email password
 
             # Create the email content
