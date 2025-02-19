@@ -165,7 +165,7 @@ with col1:
 
     df = fetch_table(URL)
 
-    if df:
+    if df is not None:
         st.subheader("Top Currencies")
         with st.container(border=True):
             i = 0
@@ -191,7 +191,7 @@ with col2:
 
     df = fetch_table(URL)
 
-    if df:
+    if df is not None:
         st.subheader("Top Cryptos")
         with st.container(border=True):
             i = 0

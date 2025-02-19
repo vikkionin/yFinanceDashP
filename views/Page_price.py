@@ -167,7 +167,7 @@ with col1:
 
     INDICES = ["^GSPC", "^DJI", "^IXIC", "^N225", "^GDAXI", "^MERV"]
 
-    if df:
+    if df is not None:
         st.subheader("Indices")
         with st.container(border=True):
             i = 0
@@ -192,7 +192,7 @@ with col2:
 
     df = fetch_table(URL)
 
-    if df:
+    if df is not None:
         st.subheader("Top Gainers")
         with st.container(border=True):
             i = 0
@@ -217,7 +217,7 @@ with col3:
 
     df = fetch_table(URL)
 
-    if df:
+    if df is not None:
         st.subheader("Top Losers")
         with st.container(border=True):
             i = 0

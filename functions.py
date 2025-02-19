@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import datetime
 import time
+import requests
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -69,8 +70,10 @@ def fetch_splits(ticker):
 
 @st.cache_data
 def fetch_table(url):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     try:
-        df = pd.read_html(url)
+        response = requests.get(url, headers=headers)
+        df = pd.read_html(response.content)
         return df[0]
     except:
         return None

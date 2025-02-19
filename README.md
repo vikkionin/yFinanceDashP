@@ -12,3 +12,7 @@ You can access the live version of the dashboard here: [Interactive Stock Dashbo
 - Indicators
 - Forex market
 - Commodity market
+
+## Video
+
+If you need guidance on how to use the tool, I’ve put together a very amateur YouTube video explaining it: https://youtu.be/O-MtZoPCM88

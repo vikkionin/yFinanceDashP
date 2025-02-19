@@ -127,7 +127,7 @@ df = fetch_table(URL)
 
 COMMODITIES = ["GC=F", "SI=F", "HG=F", "NG=F", "BZ=F", "KC=F", "KE=F", "ZS=F"]
 
-if df:
+if df is not None:
     st.subheader("Top Commodities")
     with st.container(border=True):
         i = 0

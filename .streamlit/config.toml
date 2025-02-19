@@ -5,6 +5,7 @@ fileWatcherType = "poll"
 toolbarMode = "minimal"
 
 [theme]
+base="light"
 primaryColor="#FF4B4B"
 backgroundColor="#FFFFFF"
 #backgroundColor="#52be80"
