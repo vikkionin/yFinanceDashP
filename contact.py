@@ -22,9 +22,9 @@ def contact_form():
         container_email = st.empty()
         container_message = st.empty()
 
-        name = container_name.text_input("First Name", key="name_1")
-        email = container_email.text_input("Email Address", key="email_1")
-        message = container_message.text_area("Your Message", key="message_1")
+        name = container_name.text_input("First Name", max_chars=50, key="name_1")
+        email = container_email.text_input("Email Address", max_chars=50, key="email_1")
+        message = container_message.text_area("Your Message", max_chars=1000, key="message_1")
         submit_button = st.form_submit_button("Submit")
 
         if submit_button:
