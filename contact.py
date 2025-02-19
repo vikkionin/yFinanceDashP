@@ -14,6 +14,7 @@ def contact_form():
 
     PASSWORD = st.secrets["PASSWORD"]
     USERNAME = st.secrets["USERNAME"]
+    EMAIL = st.secrets["EMAIL"]
 
     with st.form("contact_form", clear_on_submit=False):
 
@@ -57,8 +58,8 @@ def contact_form():
             password = PASSWORD # Your email password
 
             # Create the email content
-            sender_email = 'leonardoantiqui@gmail.com'
-            receiver_email = 'leonardoantiqui@gmail.com'
+            sender_email = EMAIL
+            receiver_email = EMAIL
             subject = 'yfinance App'
             body = json.dumps(data, indent=4)
 
