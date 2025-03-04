@@ -1063,6 +1063,12 @@ def performance_table(df, tickers):
     return fig
 
 def plot_capital(df, ticker="", currency=""):
+
+    try:
+        total_debt = df.loc['Total Debt']
+    except:
+        df.loc['Total Debt'] = df.loc['Total Liabilities Net Minority Interest']
+
     df1 = pd.concat([df.loc['Ordinary Shares Number'], df.loc['Cash Cash Equivalents And Short Term Investments'],
                      df.loc['Total Debt']], axis=1)
 
