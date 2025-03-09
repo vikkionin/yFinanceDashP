@@ -15,10 +15,24 @@ st.set_page_config(
     }
 )
 
+# ----LOGO----
+st.html("""
+  <style>
+    [alt=Logo] {
+      height: 4rem;
+      width: auto;
+      padding-left: 1rem;
+    }
+  </style>
+""")
+
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
+    'current_time_financials_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None),
     'tickers': "MSFT",
-    'current_time_financials_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
+    'dark_mode': False,
+    'toggle_theme': False,
+    'financial_period': "Annual"
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -34,7 +48,6 @@ with st.sidebar:
 
     TICKERS = st.text_input(
         label="Securities:",
-        #value='MSFT',
         key='tickers'
     )
 
@@ -60,11 +73,12 @@ with st.sidebar:
 
     TIME_PERIOD = st.radio(
         label="Time Period:",
-        options=["Annual", "Quarterly"]
+        options=["Annual", "Quarterly"],
+        key="financial_period"
     )
 
     st.write("")
-    button = st.button("Refresh data", key="refresh_security")
+    button = st.button("Refresh data")
 
     if button:
         st.session_state['current_time_financials_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
@@ -82,6 +96,15 @@ with st.sidebar:
 
     if button:
         show_contact_form()
+
+    # ----CREDIT----
+    st.write("")
+    st.write("")
+    col1, col2 = st.columns(2, gap="small")
+    with col1:
+        st.markdown("<p style='text-align: right;'>Powered by:</p>", unsafe_allow_html=True)
+    with col2:
+        st.image("imgs/logo_yahoo_lightpurple.svg", width=100)
 
 # ---- MAINPAGE ----
 
@@ -119,7 +142,7 @@ if len(TICKERS) == 1:
         # theme=None
     )
 
-    #----BALANCE SHEET----
+    # ----BALANCE SHEET----
 
     st.header("Balance Sheet")
 
@@ -155,7 +178,8 @@ if len(TICKERS) == 1:
             hide_index=False
         )
 
-    #----INCOME STATEMENT----
+
+    # ----INCOME STATEMENT----
 
     st.header("Income Statement")
 
@@ -173,7 +197,7 @@ if len(TICKERS) == 1:
             hide_index=False
         )
 
-    #----CASH FLOW----
+    # ----CASH FLOW----
 
     st.header("Cash Flow")
 
@@ -191,6 +215,7 @@ if len(TICKERS) == 1:
         )
 
 else:
+
     # ----CAPITAL STRUCTURE-----
 
     st.header("Capital Structure")

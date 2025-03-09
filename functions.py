@@ -2,7 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import datetime
-import time
 import requests
 
 import plotly.graph_objects as go
@@ -1023,38 +1022,38 @@ def performance_table(df, tickers):
         Pct_change_last = (df_t['Close'].iloc[-1] - df_t['Close'].iloc[-2]) / df_t['Close'].iloc[-2]
 
         perform[ticker] = {
-            'last': Pct_change_last * 100,
+            'Last value': Pct_change_last * 100,
             '1/4 Period': Pct_change_14P * 100,
             '1/2 Period': Pct_change_12P * 100,
             '1 Period': Pct_change_1P * 100,
         }
 
-    df_perform = pd.DataFrame(perform)
+    df_perform = pd.DataFrame(perform).rename_axis("Period").reset_index()
 
     header = df_perform.columns.tolist()
-    header.insert(0, 'Period')
+    # header.insert(0, 'Period')
     values = [df_perform[col] for col in df_perform.columns]
-    values.insert(0, [1, int(LEN / 4), int(LEN / 2), LEN])
+    # values.insert(0, [1, int(LEN / 4), int(LEN / 2), LEN])
 
     formatted_values = [[format_number(val) for val in row] for row in values]
 
     # Create the Plotly Table
     fig = go.Figure(data=[go.Table(
         header=dict(values=header,
-                    fill_color='paleturquoise',
+                    #fill_color='paleturquoise',
                     align='center',
-                    font=dict(color='black', size=18, weight='bold')
+                    font=dict(size=18, weight='bold')
                     ),
         cells=dict(values=formatted_values,
                    align='center',
-                   font=dict(color='black', size=16),
+                   font=dict(size=16),
                    )
     )])
 
     fig.update_layout(
         title='Price Performance',  # Add your title here
         #title_x=0.5,  # Centers the title horizontally
-        title_font=dict(size=20, family='Arial', color='black'),  # Customize the title font
+        title_font=dict(size=20, family='Arial'),  # Customize the title font
         height=250,
         margin=dict(t=70, b=0, l=0, r=0)
     )

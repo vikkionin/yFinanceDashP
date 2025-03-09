@@ -15,9 +15,34 @@ st.set_page_config(
     }
 )
 
+# ----LOGO----
+st.html("""
+  <style>
+    [alt=Logo] {
+      height: 4rem;
+      width: auto;
+      padding-left: 1rem;
+    }
+  </style>
+""")
+
+# ----TIME ZONE----
+if 'timezone' not in st.session_state:
+    timezone = st_javascript("""await (async () => {
+                    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    return userTimezone
+                    })().then(returnValue => returnValue)""")
+    if isinstance(timezone, int):
+        st.stop()
+    st.session_state['timezone'] = ZoneInfo(timezone)
+
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
-    'current_time_commodity_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
+    'current_time_commodity_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None),
+    'tickers': "MSFT",
+    'dark_mode': False,
+    'toggle_theme': False,
+    'financial_period': "Annual"
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -97,7 +122,7 @@ with st.sidebar:
         INDICATORS = [indicator.replace("X", str(TIME_SPAN)) if '_X' in indicator else indicator for indicator in INDICATORS]
 
     st.write("")
-    button = st.button("Refresh data", key="refresh_security")
+    button = st.button("Refresh data")
 
     if button:
         st.session_state['current_time_commodity_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
@@ -114,12 +139,24 @@ with st.sidebar:
     if button:
         show_contact_form()
 
+    # ----CREDIT----
+    st.write("")
+    st.write("")
+    col1, col2 = st.columns(2, gap="small")
+    with col1:
+        st.markdown("<p style='text-align: right;'>Powered by:</p>", unsafe_allow_html=True)
+    with col2:
+        st.image("imgs/logo_yahoo_lightpurple.svg", width=100)
+
 
 # ---- MAINPAGE ----
 
 st.title("Commodity Market")
 
 #----FIRST SECTION----
+
+
+
 
 URL = "https://finance.yahoo.com/markets/commodities/"
 

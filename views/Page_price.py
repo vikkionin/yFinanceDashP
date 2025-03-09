@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 def show_contact_form():
     contact_form()
 
+
 st.set_page_config(
     page_title="Stock", # The page title, shown in the browser tab.
     page_icon=":material/stacked_line_chart:",
@@ -16,6 +17,17 @@ st.set_page_config(
         "Get help": "https://github.com/LMAPcoder" # The URL this menu item should point to.
     }
 )
+
+# ----LOGO----
+st.html("""
+  <style>
+    [alt=Logo] {
+      height: 4rem;
+      width: auto;
+      padding-left: 1rem;
+    }
+  </style>
+""")
 
 # ----TIME ZONE----
 if 'timezone' not in st.session_state:
@@ -30,8 +42,11 @@ if 'timezone' not in st.session_state:
 
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
+    'current_time_price_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None),
     'tickers': "MSFT",
-    'current_time_price_page': datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
+    'dark_mode': False,
+    'toggle_theme': False,
+    'financial_period': "Annual"
 }
 
 for key in all_my_widget_keys_to_keep:
@@ -44,10 +59,26 @@ for key in all_my_widget_keys_to_keep:
 # ---- SIDEBAR ----
 with st.sidebar:
 
+    TOGGLE_THEME = st.toggle(
+        label="Dark mode :material/dark_mode:",
+        key="toggle_theme",
+        help="Switch to dark theme"
+        #value=False
+    )
+
+    if TOGGLE_THEME != st.session_state['dark_mode']:
+        if TOGGLE_THEME:
+            st._config.set_option(f'theme.base', "dark")
+        else:
+            st._config.set_option(f'theme.base', "light")
+        st.session_state['dark_mode'] = TOGGLE_THEME
+        st.rerun()
+
     PORTFOLIO = st.selectbox(
         label="Portfolios",
         options=[None, "Magnificent 7", "Oil&Gas", "Vehicles"],
         index=0,
+        help="Choose from one of the predefined portfolios"
     )
 
     if PORTFOLIO:
@@ -132,7 +163,7 @@ with st.sidebar:
             INDICATORS = [indicator.replace("X", str(TIME_SPAN)) if '_X' in indicator else indicator for indicator in INDICATORS]
 
     st.write("")
-    button = st.button("Refresh data", key="refresh_security")
+    button = st.button("Refresh data")
 
     if button:
         st.session_state['current_time_price_page'] = datetime.datetime.now(st.session_state['timezone']).replace(microsecond=0, tzinfo=None)
@@ -151,6 +182,14 @@ with st.sidebar:
     if button:
         show_contact_form()
 
+    # ----CREDIT----
+    st.write("")
+    st.write("")
+    col1, col2 = st.columns(2, gap="small")
+    with col1:
+        st.markdown("<p style='text-align: right;'>Powered by:</p>", unsafe_allow_html=True)
+    with col2:
+        st.image("imgs/logo_yahoo_lightpurple.svg", width=100)
 
 # ---- MAINPAGE ----
 st.title("Stock Market")
