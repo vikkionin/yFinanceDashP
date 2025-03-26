@@ -59,7 +59,7 @@ with st.sidebar:
         'Brent': 'BZ=F',
         'Natural Gas': 'NG=F',
         'Copper': 'HG=F',
-        #'Aluminum': 'ALUMINUM',
+        'Gold': 'GC=F',
         'Wheat': 'KE=F',
         'Corn': 'ZC=F',
         'Cotton': 'CT=F',
