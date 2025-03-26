@@ -2,5 +2,6 @@ streamlit==1.39.0
 numpy==2.1.1
 pandas==2.2.2
 plotly==5.24.0
+free_proxy
 yfinance
 streamlit-javascript

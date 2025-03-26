@@ -22,7 +22,7 @@ st.set_page_config(
 st.html("""
   <style>
     [alt=Logo] {
-      height: 4rem;
+      height: 3rem;
       width: auto;
       padding-left: 1rem;
     }

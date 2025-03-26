@@ -3,6 +3,8 @@ import yfinance as yf
 import pandas as pd
 import datetime
 import requests
+import random
+from fp.fp import FreeProxy
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -71,7 +73,11 @@ def fetch_splits(ticker):
 def fetch_table(url):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     try:
-        response = requests.get(url, headers=headers)
+        proxy = FreeProxy().get()
+        proxies_dict = {
+            "http": proxy
+        }
+        response = requests.get(url, headers=headers, proxies=proxies_dict, timeout=5)
         df = pd.read_html(response.content)
         return df[0]
     except:
