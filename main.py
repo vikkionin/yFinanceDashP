@@ -30,7 +30,7 @@ page_commodity = st.Page(
 pg = st.navigation(pages=[page_price, page_financials, page_forex, page_commodity])
 
 # --- SHARED ON ALL PAGES ---
-st.logo("imgs/logo_gorilla.png", size="large")
+st.logo("imgs/logo_friendly.png", size="large")
 
 # --- RUN NAVIGATION ---
 pg.run()
