@@ -13,13 +13,16 @@ import plotly.colors as pc
 @st.cache_data
 def fetch_info(ticker):
     ticker = yf.Ticker(ticker)
-    info = ticker.info
-    if "quoteType" in ticker.info:
-        return info
-    else:
+    try:
+        info = ticker.info
+        if "quoteType" in ticker.info:
+            return info
+        else:
+            return None
+            #st.warning("Invalid ticker")
+            #st.stop()
+    except:
         return None
-        #st.warning("Invalid ticker")
-        #st.stop()
 
 @st.cache_data
 def fetch_history(ticker, period="3mo", interval="1d", start=None):
@@ -161,7 +164,7 @@ def info_table(info):
 
     return df
 
-
+# ---- CHARTS ----
 def plot_gauge(df, ticker):
     df = df[df['Ticker'] == ticker]
 
@@ -189,7 +192,7 @@ def plot_gauge(df, ticker):
 
     return fig
 
-def plot_candles_stick_bar(df, title=""):
+def plot_candles_stick_bar(df, title="", currency=""):
 
     rows = 1
     row_heights = [7]
@@ -212,7 +215,7 @@ def plot_candles_stick_bar(df, title=""):
                                  high=df['High'],
                                  low=df['Low'],
                                  close=df['Close'],
-                                 name="OHVC"
+                                 name="OHVC",
                                  ),
                   row=1, col=1)
 
@@ -263,7 +266,13 @@ def plot_candles_stick_bar(df, title=""):
             fig.add_trace(go.Bar(x=df.index,
                                  y=df[col_name],
                                  name=col_name,
-                                 marker_color=volume_colors),
+                                 marker_color=volume_colors,
+                                 hovertemplate=
+                                 '%{x}<br>' +
+                                 'Volume: %{y}<br>' +
+                                 'ΔVolume: %{customdata[0]}<extra></extra>',
+                                 customdata=df[["ΔVolume%"]].values
+                                 ),
                           row=row, col=1)
 
             fig.update_yaxes(title_text="Volume", row=row, col=1)
@@ -324,7 +333,7 @@ def plot_candles_stick_bar(df, title=""):
     fig.update_layout(
         title=title,
         # xaxis_title='Date',
-        yaxis_title='Price',
+        yaxis_title=f'Price (in {currency})',
         # xaxis2_title='Date',
         # yaxis2_title='Volume',
         legend=dict(
@@ -553,8 +562,10 @@ def plot_assets(df, ticker="", currency=""):
     colors = pc.sequential.Blugrn[::-1]
     i = 0
 
+    current_assets = 0
     for component in assests['Current Assets']:
         if component in df.index:
+            current_assets += df.loc[component]
             fig.add_trace(go.Bar(
                 x=df.columns,
                 y=df.loc[component],
@@ -567,11 +578,16 @@ def plot_assets(df, ticker="", currency=""):
             ), row=1, col=1)
             i += 1
 
+    if 'Current Assets' not in df.index:
+        df.loc['Current Assets'] = current_assets
+
     colors = pc.sequential.Purp[::-1]
     i = 0
 
+    non_current_assets = 0
     for component in assests['Total Non Current Assets']:
         if component in df.index:
+            non_current_assets += df.loc[component]
             fig.add_trace(go.Bar(
                 x=df.columns,
                 y=df.loc[component],
@@ -583,6 +599,9 @@ def plot_assets(df, ticker="", currency=""):
                 showlegend=True
             ), row=1, col=2)
             i += 1
+
+    if 'Total Non Current Assets' not in df.index:
+        df.loc['Total Non Current Assets'] = non_current_assets
 
     offset = 0.03 * max(df.loc['Current Assets'].max(), df.loc['Total Non Current Assets'].max())
 
@@ -657,8 +676,10 @@ def plot_liabilities(df, ticker="", currency=""):
     colors = pc.sequential.Oryel[::-1]
     i = 0
 
+    current_liabilities = 0
     for component in liabilities['Current Liabilities']:
         if component in df.index:
+            current_liabilities += df.loc[component]
             fig.add_trace(go.Bar(
                 x=df.columns,
                 y=df.loc[component],
@@ -671,11 +692,15 @@ def plot_liabilities(df, ticker="", currency=""):
             ), row=1, col=1)
             i += 1
 
+    if 'Current Liabilities' not in df.index:
+        df.loc['Current Liabilities'] = current_liabilities
+
     colors = pc.sequential.Brwnyl[::-1]
     i = 0
-
+    non_current_liabilities = 0
     for component in liabilities['Total Non Current Liabilities Net Minority Interest']:
         if component in df.index:
+            non_current_liabilities += df.loc[component]
             fig.add_trace(go.Bar(
                 x=df.columns,
                 y=df.loc[component],
@@ -687,6 +712,9 @@ def plot_liabilities(df, ticker="", currency=""):
                 showlegend=True
             ), row=1, col=2)
             i += 1
+
+    if 'Total Non Current Liabilities Net Minority Interest' not in df.index:
+        df.loc['Total Non Current Liabilities Net Minority Interest'] = non_current_liabilities
 
     offset = 0.03 * max(df.loc['Current Liabilities'].max(),
                         df.loc['Total Non Current Liabilities Net Minority Interest'].max())
@@ -869,7 +897,8 @@ def plot_income(df, ticker="", currency=""):
             if base:
                 base = 0
                 for _ in income_st[component]['base']:
-                    base += df.loc[_]
+                    if _ in df.index:
+                        base += df.loc[_]
 
             if component == "Total Revenue" or component == "Net Income Common Stockholders":
                 percentages = round(df.loc[component].astype('float64').pct_change(periods=-1) * 100, 1)
@@ -922,7 +951,9 @@ def plot_income(df, ticker="", currency=""):
 
 def plot_cash(df, ticker="", currency=""):
     cashflow = {
-        'Operating Cash Flow': {},
+        'Operating Cash Flow': {
+            'Alternative': ['Cash Flowsfromusedin Operating Activities Direct']
+        },
         'Investing Cash Flow': {},
         'Financing Cash Flow': {},
         'End Cash Position': {
@@ -931,6 +962,14 @@ def plot_cash(df, ticker="", currency=""):
             'Beginning Cash Position': None
         }
     }
+
+    for component in cashflow:
+        if component not in df.index:
+            alternatives = cashflow[component]['Alternative']
+            for alternative in alternatives:
+                if alternative in df.index:
+                    df.loc[component] = df.loc[alternative]
+                    break
 
     fig = go.Figure()
 
@@ -1069,10 +1108,11 @@ def performance_table(df, tickers):
 
 def plot_capital(df, ticker="", currency=""):
 
-    try:
-        total_debt = df.loc['Total Debt']
-    except:
+    if 'Total Debt' not in df.index:
         df.loc['Total Debt'] = df.loc['Total Liabilities Net Minority Interest']
+
+    if 'Cash Cash Equivalents And Short Term Investments' not in df.index:
+        df.loc['Cash Cash Equivalents And Short Term Investments'] = df.loc['Cash And Cash Equivalents']
 
     df1 = pd.concat([df.loc['Ordinary Shares Number'], df.loc['Cash Cash Equivalents And Short Term Investments'],
                      df.loc['Total Debt']], axis=1)
@@ -1333,6 +1373,11 @@ def plot_income_multiple(TICKERS, tp="Annual"):
     return fig
 
 def plot_cash_multiple(TICKERS, tp="Annual"):
+    cashflow = {
+        'Operating Cash Flow': {
+            'Alternative': ['Cash Flowsfromusedin Operating Activities Direct']
+        },
+    }
 
     fig = go.Figure()
 
@@ -1343,6 +1388,14 @@ def plot_cash_multiple(TICKERS, tp="Annual"):
         df.columns = pd.to_datetime(df.columns).strftime('%b %d, %Y')
 
         show_legend = ticker == TICKERS[0]
+
+        for component in cashflow:
+            if component not in df.index:
+                alternatives = cashflow[component]['Alternative']
+                for alternative in alternatives:
+                    if alternative in df.index:
+                        df.loc[component] = df.loc[alternative]
+                        break
 
         percentages = round(df.loc['Operating Cash Flow'].astype('float64').pct_change(periods=1) * 100, 1)
         percentages = percentages.apply(lambda x: f"+{x}%" if x > 0 else ("" if pd.isna(x) else f"{x}%")).tolist()
@@ -1381,4 +1434,137 @@ def plot_cash_multiple(TICKERS, tp="Annual"):
         ),
         margin=dict(t=70)
     )
+    return fig
+
+def plot_eps(ticker):
+
+    df = fetch_income(ticker, tp='Annual')
+
+    # Create the line chart
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df.columns,
+        y=df.loc['Basic EPS'],
+        mode='lines+markers',
+        name='Basic EPS',
+        line=dict(color='blue', width=2),
+        marker=dict(size=8, color='blue')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df.columns,
+        y=df.loc['Diluted EPS'],
+        mode='lines+markers',
+        name='Diluted EPS',
+        line=dict(color='black', width=2),
+        marker=dict(size=8, color='black')
+    ))
+
+
+    # Add titles and labels
+    fig.update_layout(
+        title=f'EPS: {ticker}',
+        xaxis_title='Date',
+        yaxis_title='EPS',
+        #template='plotly_dark'  # Optional: use a dark theme
+    )
+
+    # Show the plot
+    return fig
+
+def plot_margins(df, ticker):
+    df = pd.concat([df.loc['Gross Profit'], df.loc['Operating Income'], df.loc['Net Income Common Stockholders'],
+                    df.loc['Total Revenue']], axis=1)
+    df['Gross Margin'] = df['Gross Profit'] / df['Total Revenue']
+    df['Operating Margin'] = df['Operating Income'] / df['Total Revenue']
+    df['Net Margin'] = df['Net Income Common Stockholders'] / df['Total Revenue']
+
+    # Create the line chart
+    fig = go.Figure()
+
+    # Create the line chart
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=df['Gross Margin'],
+        mode='lines+markers',
+        name='Gross Margin',
+        line=dict(color='blue', width=2),
+        marker=dict(size=8, color='blue')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=df['Operating Margin'],
+        mode='lines+markers',
+        name='Operating Margin',
+        line=dict(color='black', width=2),
+        marker=dict(size=8, color='black')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=df['Net Margin'],
+        mode='lines+markers',
+        name='Net Margin',
+        line=dict(color='green', width=2),
+        marker=dict(size=8, color='green')
+    ))
+
+    # Add titles and labels
+    fig.update_layout(
+        title=f'Profit Margins: {ticker}',
+        xaxis_title='Date',
+        yaxis_title='Margin',
+        yaxis=dict(tickformat='.0%'),
+        #template='plotly_dark'  # Optional: use a dark theme
+    )
+
+    return fig
+
+def plot_pe_ratio(ticker):
+    a_is = fetch_income(ticker, tp='Annual')
+    q_is = fetch_income(ticker, tp='Quarterly')
+
+    eps_a = a_is.loc['Basic EPS'].iloc[::-1]
+    eps_q = q_is.loc['Basic EPS'].iloc[::-1]
+    eps_q = eps_q.rolling(window=4, min_periods=4).sum().dropna()
+    df1 = eps_a.combine_first(eps_q)
+
+    dates = df1.index
+    start = dates[0]
+
+    hist = fetch_history(
+        ticker=ticker,
+        interval='1d',
+        start=start
+    )
+    df2 = hist.copy()
+    df2.index = df2.index.tz_localize(None)
+
+    merge = pd.merge_asof(df2, df1, left_index=True, right_index=True, direction='backward')
+    merge['P/E ratio'] = merge['Close'] / merge['Basic EPS']
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=merge.index,
+        y=merge['P/E ratio'],
+        mode='lines',
+        name='P/E ratio',
+        line=dict(color='blue', width=2),
+        #marker=dict(size=8, color='blue')
+    ))
+
+    #fig.add_hline(y=15, line_dash="dash", annotation_text='Undervalued by Graham', annotation_position="bottom right")
+
+    fig.update_layout(
+        title=f'P/E Ratio: {ticker}',
+        xaxis_title='Date',
+        yaxis_title='Ratio',
+        #template='plotly_dark'  # Optional: use a dark theme
+    )
+
     return fig

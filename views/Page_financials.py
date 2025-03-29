@@ -1,5 +1,7 @@
 from functions import *
 from contact import contact_form
+from streamlit_javascript import st_javascript
+from zoneinfo import ZoneInfo
 
 @st.dialog("Contact Me")
 def show_contact_form():
@@ -19,12 +21,22 @@ st.set_page_config(
 st.html("""
   <style>
     [alt=Logo] {
-      height: 4rem;
+      height: 3rem;
       width: auto;
       padding-left: 1rem;
     }
   </style>
 """)
+
+# ----TIME ZONE----
+if 'timezone' not in st.session_state:
+    timezone = st_javascript("""await (async () => {
+                    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    return userTimezone
+                    })().then(returnValue => returnValue)""")
+    if isinstance(timezone, int):
+        st.stop()
+    st.session_state['timezone'] = ZoneInfo(timezone)
 
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
@@ -190,6 +202,55 @@ if len(TICKERS) == 1:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    with st.expander("Ratios"):
+        tab1, tab2, tab3 = st.tabs(
+            ["Net Margin", "Earnings per Share", "Price-to-Earnings Ratio"]
+        )
+
+        with tab1:
+
+            st.write("Net profit margin measures how much net income or profit a company generates"
+                     " as a percentage of its revenue.")
+
+            try:
+                fig = plot_margins(ist, ticker=TICKER)
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True,
+                    #theme=None
+                )
+            except:
+                st.error("The data available is not enough to plot this ratio")
+
+        with tab2:
+
+            st.write("Basic earnings per share (EPS) is a rough measurement of the amount of a "
+                     "company's profit that can be allocated to one share of its common stock.")
+
+            try:
+                fig = plot_eps(TICKER)
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True,
+                    #theme=None
+                )
+            except:
+                st.error("The data available is not enough to plot this ratio")
+
+        with tab3:
+
+            st.write("The price-to-earnings (P/E) ratio measures a company's share price"
+                     " relative to its earnings per share (EPS)")
+
+            try:
+                fig = plot_pe_ratio(TICKER)
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True,
+                    # theme=None
+                )
+            except:
+                st.error("The data available is not enough to plot this ratio")
 
     with st.expander("Show data"):
         st.dataframe(

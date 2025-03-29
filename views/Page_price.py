@@ -74,20 +74,33 @@ with st.sidebar:
         st.session_state['dark_mode'] = TOGGLE_THEME
         st.rerun()
 
+    PORTFOLIOS = {
+        "Magnificent 7": "MSFT, GOOGL, AAPL, AMZN, META, TSLA, NVDA",
+        "Top 5 Shanghai": "600519.SS, 601398.SS, 600036.SS, 601318.SS, 601857.SS",
+        "Top 5 Tokyo": "7203.T, 6758.T, 8306.T, 6861.T, 7974.T",
+        "Top 5 Hong Kong": "0700.HK, 9988.HK, 1299.HK, 3690.HK, 0939.HK",
+        "Top 5 Euronext": "ASML.AS, MC.PA, OR.PA, RMS.PA, TTE.PA",
+        "Top 5 London": "AZN.L, HSBA.L, SHEL.L, ULVR.L, DGE.L",
+        "Top 5 Bombay": "RELIANCE.NS, TCS.NS, HDFCBANK.NS, INFY.NS, ICICIBANK.NS",
+        "Top 5 Toronto": "RY.TO, TD.TO, CNR.TO, ENB.TO, SHOP.TO",
+        "Top 5 Frankfurt": "SAP.DE, SIE.DE, VOW3.DE, ALV.DE, DTE.DE",
+        "Top 5 Australia": "BHP.AX, CBA.AX, CSL.AX, NAB.AX, WBC.AX",
+        "Top 5 Singapore": "D05.SI, O39.SI, U11.SI, Z74.SI, 9CI.SI",
+        "Top 5 São Paulo": "VALE3.SA, PETR4.SA, BBDC4.SA, ABEV3.SA, BBAS3.SA",
+        "Top 5 Buenos Aires": "YPFD.BA, GGAL.BA, BMA.BA, BBAR.BA, PAMP.BA",
+        "Oil&Gas": "CVX, XOM, SHEL, YPFD.BA, VIST, PAMP.BA",
+        "Vehicles": "TSLA, F, GM, VOW3.DE, 7203.T, 1211.HK, RACE",
+    }
+
     PORTFOLIO = st.selectbox(
         label="Portfolios",
-        options=[None, "Magnificent 7", "Oil&Gas", "Vehicles"],
+        options=[None] + list(PORTFOLIOS.keys()),
         index=0,
-        help="Choose from one of the predefined portfolios"
+        help="Choose from one of the predefined portfolios. Leave it as None to customize it"
     )
 
-    if PORTFOLIO:
-        if PORTFOLIO == "Magnificent 7":
-            st.session_state["tickers"] = "MSFT, GOOGL, AAPL, AMZN, META, TSLA, NVDA"
-        if PORTFOLIO == "Oil&Gas":
-            st.session_state["tickers"] = "CVX, XOM, SHEL, YPFD.BA, VIST, PAMP.BA"
-        if PORTFOLIO == "Vehicles":
-            st.session_state["tickers"] = "TSLA, F, GM, VOW3.DE, 7203.T, 1211.HK, RACE"
+    if PORTFOLIO is not None:
+        st.session_state["tickers"] = PORTFOLIOS[PORTFOLIO]
 
     TICKERS = st.text_input(
         label="Securities:",
@@ -296,15 +309,20 @@ if len(TICKERS) == 1:
 
     # ----INFORMATION----
     with st.expander("More info"):
-        df = info_table(info)
-        PRICE = df.loc['Price', 0]
-        df.drop(index="Price", inplace=True)
-        df = df.reset_index()
-        df = df.rename(columns={"index": "Feature", 0: "Value"})
-        st.dataframe(
-            data=df,
-            hide_index=True
-        )
+        col1, col2 = st.columns([0.3, 0.7], gap="small")
+        with col1:
+            df = info_table(info)
+            PRICE = df.loc['Price', 0]
+            df.drop(index="Price", inplace=True)
+            df = df.reset_index()
+            df = df.rename(columns={"index": "Feature", 0: "Value"})
+            st.dataframe(
+                data=df,
+                hide_index=True
+            )
+        with col2:
+            BUSINESS_SUMMARY = info.get('longBusinessSummary', "")
+            st.write(BUSINESS_SUMMARY)
 
     #----METRICS----
     PREVIOUS_PRICE = info.get('previousClose', 0)
@@ -314,6 +332,8 @@ if len(TICKERS) == 1:
     LOW = info.get('dayLow', 0)
     CURRENCY = info.get('currency', "???")
     VOLUME = info.get('volume', 0)
+    FIFTY_TWO_WEEK_LOW = info.get('fiftyTwoWeekLow', 0)
+    FIFTY_TWO_WEEK_HIGH = info.get('fiftyTwoWeekHigh', 0)
 
     st.metric(
         "Latest Price",
@@ -372,6 +392,9 @@ if len(TICKERS) == 1:
 
     if not TOGGLE_VOL:
         df = df.drop(columns=['Volume'], axis=1)
+    else:
+        df['ΔVolume%'] = df['Volume'].pct_change(periods=1) * 100
+        df['ΔVolume%'] = df['ΔVolume%'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else None)
 
     for INDICATOR in INDICATORS:
         if "SMA" in INDICATOR:
@@ -416,7 +439,10 @@ if len(TICKERS) == 1:
 
         df['RSI'] = 100 - (100 / (1 + rs))
 
-    fig = plot_candles_stick_bar(df, "Candlestick Chart")
+    fig = plot_candles_stick_bar(df, title="Candlestick Chart", currency=CURRENCY)
+
+    fig.add_hline(y=FIFTY_TWO_WEEK_LOW, line=dict(color="black", dash="dash", width=1), annotation_text='52 Week Low', row=1, col=1)
+    fig.add_hline(y=FIFTY_TWO_WEEK_HIGH, line=dict(color="black", dash="dash", width=1), annotation_text='52 Week High', row=1, col=1)
 
     st.plotly_chart(fig, use_container_width=True)
 
