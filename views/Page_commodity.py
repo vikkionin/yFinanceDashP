@@ -60,6 +60,8 @@ with st.sidebar:
         'Natural Gas': 'NG=F',
         'Copper': 'HG=F',
         'Gold': 'GC=F',
+        'Silver': 'SI=F',
+        'Soybean': 'ZS=F',
         'Wheat': 'KE=F',
         'Corn': 'ZC=F',
         'Cotton': 'CT=F',
@@ -196,6 +198,9 @@ df = hist.copy()
 
 if not TOGGLE_VOL:
     df = df.drop(columns=['Volume'], axis=1)
+else:
+    df['ΔVolume%'] = df['Volume'].pct_change(periods=1) * 100
+    df['ΔVolume%'] = df['ΔVolume%'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else None)
 
 for INDICATOR in INDICATORS:
     if "SMA" in INDICATOR:
