@@ -1,5 +1,7 @@
 from functions import *
 from contact import contact_form
+from streamlit_javascript import st_javascript
+from zoneinfo import ZoneInfo
 
 @st.dialog("Contact Me")
 def show_contact_form():
@@ -25,6 +27,16 @@ st.html("""
     }
   </style>
 """)
+
+# ----TIME ZONE----
+if 'timezone' not in st.session_state:
+    timezone = st_javascript("""await (async () => {
+                    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    return userTimezone
+                    })().then(returnValue => returnValue)""")
+    if isinstance(timezone, int):
+        st.stop()
+    st.session_state['timezone'] = ZoneInfo(timezone)
 
 # ----SESSION STATE -----
 all_my_widget_keys_to_keep = {
@@ -189,8 +201,11 @@ with col1:
 
     df = fetch_table(URL)
 
-    if df is not None:
-        st.subheader("Top Currencies")
+    st.subheader("Top Currencies")
+    if isinstance(df, Exception):
+        st.error(df)
+        fetch_table.clear(URL)
+    else:
         with st.container(border=True):
             i = 0
             for _ in range(2):
@@ -215,8 +230,11 @@ with col2:
 
     df = fetch_table(URL)
 
-    if df is not None:
-        st.subheader("Top Cryptos")
+    st.subheader("Top Cryptos")
+    if isinstance(df, Exception):
+        st.error(df)
+        fetch_table.clear(URL)
+    else:
         with st.container(border=True):
             i = 0
             for _ in range(2):
@@ -251,9 +269,14 @@ if len(CURRENCY_1) == 1:
 
     info = fetch_info(TICKER)
 
-    EXCHANGE_RATE = info['previousClose']
-    BID_PRICE = info['dayLow']
-    ASK_PRICE = info['dayHigh']
+    if isinstance(info, Exception):
+        st.error(info)
+        fetch_info.clear(TICKER)
+        st.stop()
+
+    EXCHANGE_RATE = info.get('previousClose', 0)
+    BID_PRICE = info.get('dayLow', 0)
+    ASK_PRICE = info.get('dayHigh', 0)
 
     col1, col2, col3 = st.columns(3, gap="medium")
 
@@ -273,6 +296,12 @@ if len(CURRENCY_1) == 1:
     )
 
     hist = fetch_history(TICKER, period=PERIOD, interval=INTERVAL)
+
+    if isinstance(hist, Exception):
+        st.error(hist)
+        fetch_history.clear(TICKER, period=PERIOD, interval=INTERVAL)
+        st.stop()
+
     df = hist.copy()
     df = df.drop(columns=['Volume'], axis=1)
 
@@ -344,11 +373,20 @@ else:
 
         hist = fetch_history(TICKER, period=PERIOD, interval=INTERVAL)
 
-        hist.insert(0, 'Ticker', TICKER[:3])
+        if isinstance(hist, Exception):
+            st.error(hist)
+            fetch_history.clear(TICKER, period=PERIOD, interval=INTERVAL)
 
-        hist['Pct_change'] = ((hist['Close'] - hist['Close'].iloc[0]) / hist['Close'].iloc[0])
+        else:
+            hist.insert(0, 'Ticker', TICKER[:3])
 
-        dfs_hist.append(hist)
+            hist['Pct_change'] = ((hist['Close'] - hist['Close'].iloc[0]) / hist['Close'].iloc[0])
+
+            dfs_hist.append(hist)
+
+        if len(dfs_hist) == 0:
+            st.error("Error found")
+            st.stop()
 
     df = pd.concat(dfs_hist, ignore_index=False)
 

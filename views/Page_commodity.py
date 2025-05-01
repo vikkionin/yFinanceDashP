@@ -1,5 +1,7 @@
 from functions import *
 from contact import contact_form
+from streamlit_javascript import st_javascript
+from zoneinfo import ZoneInfo
 
 @st.dialog("Contact Me")
 def show_contact_form():
@@ -166,8 +168,11 @@ df = fetch_table(URL)
 
 COMMODITIES = ["GC=F", "SI=F", "HG=F", "NG=F", "BZ=F", "KC=F", "KE=F", "ZS=F"]
 
-if df is not None:
-    st.subheader("Top Commodities")
+st.subheader("Top Commodities")
+if isinstance(df, Exception):
+    st.error(df)
+    fetch_table.clear(URL)
+else:
     with st.container(border=True):
         i = 0
         for _ in range(2):
@@ -187,13 +192,18 @@ if df is not None:
 
 #----SECOND SECTION----
 
-info = fetch_info(COMMODITY)
-
 TITLE = f'Commodity: {option}'
 
 st.header(TITLE)
 
+# info = fetch_info(COMMODITY)
+
 hist = fetch_history(COMMODITY, period=PERIOD, interval=INTERVAL)
+if isinstance(hist, Exception):
+    st.error(hist)
+    fetch_history.clear(COMMODITY, period=PERIOD, interval=INTERVAL)
+    st.stop()
+
 df = hist.copy()
 
 if not TOGGLE_VOL:

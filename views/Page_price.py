@@ -114,16 +114,19 @@ with st.sidebar:
 
     TICKERS = remove_duplicates(TICKERS)
 
-    TICKERS = TICKERS[:10]
+    if len(TICKERS) > 10:
+        st.error("Only first 10 tickers are shown")
+        TICKERS = TICKERS[:10]
 
     _tickers = list()
     for TICKER in TICKERS:
         info = fetch_info(TICKER)
-        if info is None:
-            st.error(f"{TICKER} is an invalid ticker")
+        if isinstance(info, Exception):
+            st.error(info)
+            fetch_info.clear(TICKER)
         else:
             QUOTE_TYPE = info.get('quoteType', "")
-            if QUOTE_TYPE not in ["EQUITY", "ETF"]:
+            if QUOTE_TYPE not in ["EQUITY", "ETF", "INDEX"]:
                 st.error(f"{TICKER} has an invalid quoteType ({QUOTE_TYPE})")
             else:
                 _tickers.append(TICKER)
@@ -219,8 +222,11 @@ with col1:
 
     INDICES = ["^GSPC", "^DJI", "^IXIC", "^N225", "^GDAXI", "^MERV"]
 
-    if df is not None:
-        st.subheader("Indices")
+    st.subheader("Indices")
+    if isinstance(df, Exception):
+        st.error(df)
+        fetch_table.clear(URL)
+    else:
         with st.container(border=True):
             i = 0
             for _ in range(3):
@@ -244,8 +250,11 @@ with col2:
 
     df = fetch_table(URL)
 
-    if df is not None:
-        st.subheader("Top Gainers")
+    st.subheader("Top Gainers")
+    if isinstance(df, Exception):
+        st.error(df)
+        fetch_table.clear(URL)
+    else:
         with st.container(border=True):
             i = 0
             for _ in range(3):
@@ -269,8 +278,11 @@ with col3:
 
     df = fetch_table(URL)
 
-    if df is not None:
-        st.subheader("Top Losers")
+    st.subheader("Top Losers")
+    if isinstance(df, Exception):
+        st.error(df)
+        fetch_table.clear(URL)
+    else:
         with st.container(border=True):
             i = 0
             for _ in range(3):
@@ -293,7 +305,7 @@ with col3:
 
 if len(TICKERS) == 0:
     st.header(f"Security: None")
-    st.error("No valid ticker")
+    st.error("Error found")
     st.stop()
 
 if len(TICKERS) == 1:
@@ -335,11 +347,17 @@ if len(TICKERS) == 1:
     FIFTY_TWO_WEEK_LOW = info.get('fiftyTwoWeekLow', 0)
     FIFTY_TWO_WEEK_HIGH = info.get('fiftyTwoWeekHigh', 0)
 
-    st.metric(
-        "Latest Price",
-        value=f'{PRICE:.1f} {CURRENCY}',
-        delta=f'{CHANGE:.1f} ({CHANGE_PER:.2f}%)'
-        )
+    if CHANGE_PER == 0:
+        st.metric(
+            "Latest Price",
+            value=f'{PRICE:.1f} {CURRENCY}'
+            )
+    else:
+        st.metric(
+            "Latest Price",
+            value=f'{PRICE:.1f} {CURRENCY}',
+            delta=f'{CHANGE:.1f} ({CHANGE_PER:.2f}%)'
+            )
 
 
     col1, col2, col3 = st.columns(3, gap="medium")
@@ -361,6 +379,11 @@ if len(TICKERS) == 1:
 
     #----CANDLESTICK CHART----
     hist = fetch_history(TICKER, period=PERIOD, interval=INTERVAL)
+
+    if isinstance(hist, Exception):
+        st.error(hist)
+        fetch_history.clear(TICKER, period=PERIOD, interval=INTERVAL)
+        st.stop()
 
     df = hist.copy()
 
@@ -470,11 +493,20 @@ else:
 
         hist = fetch_history(TICKER, period=PERIOD, interval=INTERVAL)
 
-        hist.insert(0, 'Ticker', TICKER)
+        if isinstance(hist, Exception):
+            st.error(hist)
+            fetch_history.clear(TICKER, period=PERIOD, interval=INTERVAL)
 
-        hist['Pct_change'] = ((hist['Close'] - hist['Close'].iloc[0]) / hist['Close'].iloc[0])
+        else:
+            hist.insert(0, 'Ticker', TICKER)
 
-        dfs_hist.append(hist)
+            hist['Pct_change'] = ((hist['Close'] - hist['Close'].iloc[0]) / hist['Close'].iloc[0])
+
+            dfs_hist.append(hist)
+
+        if len(dfs_hist) == 0:
+            st.error("Error found")
+            st.stop()
 
     df = pd.concat(dfs_info, axis=1, join='inner')
     df = df.reset_index()

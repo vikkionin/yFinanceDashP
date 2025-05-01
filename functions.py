@@ -10,62 +10,90 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.colors as pc
 
-@st.cache_data
-def fetch_info(ticker):
-    ticker = yf.Ticker(ticker)
-    try:
-        info = ticker.info
-        if "quoteType" in ticker.info:
-            return info
-        else:
-            return None
-            #st.warning("Invalid ticker")
-            #st.stop()
-    except:
+def get_proxy_dict(probability=0.5):
+    if random.random() < probability:
+        proxy = FreeProxy(rand=True).get()
+        proxies_dict = {
+            "http": proxy
+        }
+        return proxies_dict
+    else:
         return None
 
 @st.cache_data
-def fetch_history(ticker, period="3mo", interval="1d", start=None):
-    ticker = yf.Ticker(ticker)
-    if start:
-        hist = ticker.history(
-            start=start,
-            interval=interval
-        )
-    else:
-        hist = ticker.history(
-            period=period,
-            interval=interval
-        )
+def fetch_info(ticker):
+    proxy = get_proxy_dict()
+    # yf.set_config(proxy=proxy)
+    ticker = yf.Ticker(ticker, proxy=proxy)
+    try:
+        info = ticker.info
+        return info
+        # if "quoteType" in ticker.info:
+        #     return info
+        # else:
+        #     return None
+    except Exception as e:
+        return e
 
-    return hist
+@st.cache_data
+def fetch_history(ticker, period="3mo", interval="1d", start=None):
+    proxy = get_proxy_dict()
+    ticker = yf.Ticker(ticker, proxy=proxy)
+    try:
+        if start:
+            hist = ticker.history(
+                start=start,
+                interval=interval
+            )
+        else:
+            hist = ticker.history(
+                period=period,
+                interval=interval
+            )
+
+        return hist
+
+    except Exception as e:
+        return e
 
 @st.cache_data
 def fetch_balance(ticker, tp="Annual"):
     ticker = yf.Ticker(ticker)
-    if tp == "Annual":
-        bs = ticker.balance_sheet
-    else:
-        bs = ticker.quarterly_balance_sheet
-    return bs.loc[:, bs.isna().mean() < 0.5]
+    try:
+        if tp == "Annual":
+            bs = ticker.balance_sheet
+        else:
+            bs = ticker.quarterly_balance_sheet
+        return bs.loc[:, bs.isna().mean() < 0.5]
+
+    except Exception as e:
+        return e
 
 @st.cache_data
 def fetch_income(ticker, tp="Annual"):
     ticker = yf.Ticker(ticker)
-    if tp == "Annual":
-        ins = ticker.income_stmt
-    else:
-        ins = ticker.quarterly_income_stmt
-    return ins.loc[:, ins.isna().mean() < 0.5]
+    try:
+        if tp == "Annual":
+            ins = ticker.income_stmt
+        else:
+            ins = ticker.quarterly_income_stmt
+        return ins.loc[:, ins.isna().mean() < 0.5]
+
+    except Exception as e:
+        return e
 
 @st.cache_data
 def fetch_cash(ticker, tp="Annual"):
     ticker = yf.Ticker(ticker)
-    if tp == "Annual":
-        cf = ticker.cashflow
-    else:
-        cf = ticker.quarterly_cashflow
-    return cf.loc[:, cf.isna().mean() < 0.5]
+    try:
+        if tp == "Annual":
+            cf = ticker.cashflow
+        else:
+            cf = ticker.quarterly_cashflow
+        return cf.loc[:, cf.isna().mean() < 0.5]
+
+    except Exception as e:
+        return e
 
 @st.cache_data
 def fetch_splits(ticker):
@@ -83,8 +111,8 @@ def fetch_table(url):
         response = requests.get(url, headers=headers, proxies=proxies_dict, timeout=5)
         df = pd.read_html(response.content)
         return df[0]
-    except:
-        return None
+    except Exception as e:
+        return e
 
 def format_value(value):
     # Split the string at the first space
@@ -131,25 +159,33 @@ def info_table(info):
 
     if TYPE == "EQUITY":
 
+        data['Quote Type'] = TYPE
         data['Name'] = info.get('shortName', "")
         data['Country'] = info.get('country', "")
         data['Market Exchange'] = info.get('exchange', "")
         data['Sector'] = info.get('sector', "")
         data['Industry'] = info.get('industry', "")
         data['Market Capitalization'] = str(info.get('marketCap', ""))
-        data['Quote currency'] = info.get('currency', "")
-        data['Beta'] = str(info.get('beta', ""))
+        data['Quote currency'] = info.get('currency', "?")
+        data['Beta'] = str(info.get('beta', "?"))
         data['Price'] = info.get('currentPrice', 0)
 
     elif TYPE == "ETF":
 
+        data['Quote Type'] = TYPE
         data['Market Exchange'] = info.get('exchange', "")
         data['Fund Family'] = info.get('fundFamily', "")
         data['Category'] = info.get('category', "")
         data['Total Assets'] = info.get('totalAssets', "")
-        data['Quote currency'] = info.get('currency', "")
-        data['Beta'] = info.get('beta3Year', "")
+        data['Quote currency'] = info.get('currency', "?")
+        data['Beta'] = str(info.get('beta3Year', "?"))
         data['Price'] = info.get('navPrice', 0)
+
+    elif TYPE == "INDEX":
+
+        data['Quote Type'] = TYPE
+        data['Market'] = info.get('market', "")
+        data['Price'] = info.get('previousClose', 0)
 
     elif TYPE == "FUTURE":
         pass

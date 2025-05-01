@@ -67,13 +67,16 @@ with st.sidebar:
 
     TICKERS = remove_duplicates(TICKERS)
 
-    TICKERS = TICKERS[:10]
+    if len(TICKERS) > 10:
+        st.error("Only first 10 tickers are shown")
+        TICKERS = TICKERS[:10]
 
     _tickers = list()
     for TICKER in TICKERS:
         info = fetch_info(TICKER)
-        if info is None:
-            st.error(f"{TICKER} is an invalid ticker")
+        if isinstance(info, Exception):
+            st.error(info)
+            fetch_info.clear(TICKER)
         else:
             QUOTE_TYPE = info.get('quoteType', "")
             if QUOTE_TYPE not in ["EQUITY"]:
@@ -124,7 +127,7 @@ st.title("Financials")
 
 if len(TICKERS) == 0:
     st.header(f"Security: None")
-    st.error("No valid ticker")
+    st.error("Error found")
     st.stop()
 
 if len(TICKERS) == 1:
@@ -145,6 +148,11 @@ if len(TICKERS) == 1:
     #----CAPITAL STRUCTURE-----
 
     st.header("Capital Structure")
+
+    if isinstance(bs, Exception):
+        st.error(bs)
+        fetch_balance.clear(TICKER, tp=TIME_PERIOD)
+        st.stop()
 
     fig = plot_capital(bs, ticker=TICKER, currency=CURRENCY)
 
@@ -197,6 +205,11 @@ if len(TICKERS) == 1:
 
     st.write("The income statement refers to a financial statement that tracks the "
              "company's revenue, expenses, gains, and losses during a set period.")
+
+    if isinstance(ist, Exception):
+        st.error(ist)
+        fetch_income.clear(TICKER, tp=TIME_PERIOD)
+        st.stop()
 
     fig = plot_income(ist, ticker=TICKER, currency=CURRENCY)
 
@@ -264,6 +277,11 @@ if len(TICKERS) == 1:
 
     st.write("The cash flow statement provides aggregate data regarding all cash inflows and"
              " all cash outflows during a given period")
+
+    if isinstance(cf, Exception):
+        st.error(cf)
+        fetch_cash.clear(TICKER, tp=TIME_PERIOD)
+        st.stop()
 
     fig = plot_cash(cf, ticker=TICKER, currency=CURRENCY)
 
