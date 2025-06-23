@@ -193,7 +193,16 @@ with st.sidebar:
 
     st.markdown("Made with ❤️ by Leonardo")
 
-    button = st.button("✉️ Contact Me", key="contact")
+    col1, col2 = st.columns(2, gap="small")
+
+    with col1:
+        button = st.button("✉️ Contact Me", key="contact")
+    with col2:
+        st.link_button(
+            label="",
+            url="https://ko-fi.com/leoantiqui",
+            icon=":material/coffee:"
+        )
 
     if button:
         show_contact_form()
@@ -249,6 +258,8 @@ with col2:
     URL = "https://finance.yahoo.com/markets/stocks/gainers/"
 
     df = fetch_table(URL)
+
+    st.dataframe(df)
 
     st.subheader("Top Gainers")
     if isinstance(df, Exception):
