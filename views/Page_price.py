@@ -259,8 +259,6 @@ with col2:
 
     df = fetch_table(URL)
 
-    st.dataframe(df)
-
     st.subheader("Top Gainers")
     if isinstance(df, Exception):
         st.error(df)
