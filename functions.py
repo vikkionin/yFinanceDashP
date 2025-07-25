@@ -23,8 +23,8 @@ def get_proxy_dict(probability=0.5):
 @st.cache_data
 def fetch_info(ticker):
     proxy = get_proxy_dict()
-    # yf.set_config(proxy=proxy)
-    ticker = yf.Ticker(ticker, proxy=proxy)
+    yf.set_config(proxy=proxy)
+    ticker = yf.Ticker(ticker)
     try:
         info = ticker.info
         return info
@@ -38,7 +38,8 @@ def fetch_info(ticker):
 @st.cache_data
 def fetch_history(ticker, period="3mo", interval="1d", start=None):
     proxy = get_proxy_dict()
-    ticker = yf.Ticker(ticker, proxy=proxy)
+    yf.set_config(proxy=proxy)
+    ticker = yf.Ticker(ticker)
     try:
         if start:
             hist = ticker.history(

@@ -235,7 +235,7 @@ with col1:
     if isinstance(df, Exception):
         st.error(df)
         fetch_table.clear(URL)
-    else:
+    if isinstance(df, pd.DataFrame):
         with st.container(border=True):
             i = 0
             for _ in range(3):
@@ -263,7 +263,7 @@ with col2:
     if isinstance(df, Exception):
         st.error(df)
         fetch_table.clear(URL)
-    else:
+    if isinstance(df, pd.DataFrame):
         with st.container(border=True):
             i = 0
             for _ in range(3):
@@ -291,7 +291,7 @@ with col3:
     if isinstance(df, Exception):
         st.error(df)
         fetch_table.clear(URL)
-    else:
+    if isinstance(df, pd.DataFrame):
         with st.container(border=True):
             i = 0
             for _ in range(3):
